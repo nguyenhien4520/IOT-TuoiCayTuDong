@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>ESP8266 WebSocket Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            margin: 20px;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>ESP8266 WebSocket Control</h1>
+
+    <div class="control-group">
+        <label>Trang thai ket noi:</label>
+        <span id="status" class="status">Khong</span>
+    </div>
+
+    <div class="control-group">
+        <label>Tu dong / Thu cong:</label>
+        <input type="checkbox" id="auto" name="auto" disabled="true" />
+    </div>
+
+    <div class="control-group">
+        <label>Mo / Dong:</label>
+        <input type="checkbox" id="op" name="op" disabled="true" />
+    </div>
+
+    <div class="control-group">
+        <label>Che do khoa cua:</label>
+        <input type="checkbox" id="door" name="door" disabled="true" />
+    </div>
+</div>
+
+<script type="text/javascript">
+    var statusElement = document.getElementById("status");
+    var doorCheckbox = document.getElementById('door');
+    var autoCheckbox = document.getElementById('auto');
+    var opCheckbox = document.getElementById('op');
+    var url = window.location.host;
+    var ws = new WebSocket('ws://' + url + '/ws');
+
+    ws.onopen = function() {
+        statusElement.innerHTML = 'Co';
+        autoCheckbox.disabled = false;
+        opCheckbox.disabled = false;
+    };
+
+    ws.onclose = function() {
+        statusElement.innerHTML = 'Khong';
+        autoCheckbox.checked = false;
+        autoCheckbox.disabled = true;
+        opCheckbox.checked = false;
+        opCheckbox.disabled = true;
+        doorCheckbox.checked = false;
+        doorCheckbox.disabled = true;
+    };
+
+    autoCheckbox.onchange = function() {
+        var autoStatus = 'MANUAL';
+        if (autoCheckbox.checked) {
+            autoStatus = 'AUTO';
+            opCheckbox.checked = false;
+            opCheckbox.disabled = true;
+            doorCheckbox.disabled = false;
+        } else {
+            doorCheckbox.checked = false;
+            doorCheckbox.disabled = true;
+            opCheckbox.disabled = false;
+        }
+        ws.send(autoStatus);
+    };
+
+    doorCheckbox.onchange = function() {
+        var doorStatus = 'DOOR_UNLOCK';
+        if (doorCheckbox.checked) {
+            doorStatus = 'DOOR_LOCK';
+        }
+        ws.send(doorStatus);
+    };
+
+    opCheckbox.onchange = function() {
+        var opStatus = 'OPEN';
+        if (opCheckbox.checked) {
+            opStatus = 'CLOSE';
+        }
+        ws.send(opStatus);
+    };
+</script>
+</body>
+</html>
